@@ -1,0 +1,29 @@
+version: '2.1'
+services:
+  dev:
+    build: .
+    user: ${DEV_USER_ID:-1000}
+    working_dir: /src
+    env_file: ["docker/dev.env"]
+    command: ["bash", "-c", "./docker/dev-command.sh"]
+    volumes:
+      - ./:/src:ro,z
+      - ./docker/home:/home/dev:rw,z
+    ports:
+      - 8080:8080
+    depends_on:
+      - composedb
+
+  composedb:
+    image: postgres:9.5.2
+    restart: always
+    env_file: ["docker/composedb.env"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 30s
+      retries: 3
+
+networks:
+  default:
+    driver: bridge

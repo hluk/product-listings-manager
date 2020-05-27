@@ -1,29 +1,27 @@
-FROM centos:7
+FROM centos:8
 LABEL \
     name="product-listings-manager" \
     vendor="product-listings-manager developers" \
     license="MIT" \
     build-date=""
 
+WORKDIR /src
+
 RUN yum install -y epel-release \
     && yum -y update \
     && yum -y install \
-        git \
-        python-gunicorn \
-        python-flask \
-        python2-flask-restful \
-        python2-koji \
-        PyGreSQL
+        python3-flask \
+        python3-gunicorn \
+        python3-koji \
+        python3-pip \
+        python3-sqlalchemy
 
-WORKDIR /var/www/product-listings-manager
-
-# Restore working tree from current git commit in container.
-COPY .git .git
-RUN git reset --hard HEAD \
-    && git checkout HEAD
-
-# Clean up.
-RUN yum -y remove git \
+COPY . /tmp/code
+RUN cd /tmp/code \
+    && pip3 install \
+        flask-restful==0.3.7 \
+        flask-sqlalchemy==2.3.2 \
+    && pip3 install . --no-deps \
     && yum -y clean all \
     && rm -rf /var/cache/yum \
     && rm -rf /tmp/*
@@ -38,8 +36,9 @@ RUN if [ -n "$cacert_url" ]; then \
 USER 1001
 EXPOSE 5000
 
-ENTRYPOINT [ \
-    "gunicorn", \
+CMD [ \
+    "/usr/bin/gunicorn-3", \
+    "--workers=8", \
     "--bind=0.0.0.0:5000", \
     "--access-logfile=-", \
     "--enable-stdio-inheritance", \

@@ -1,0 +1,12 @@
+*.egg-info/
+.env/
+.git/
+.pytest_cache/
+.tox/
+.venv/
+.vscode/
+build/
+dist/
+docker/home/
+htmlcov/
+venv/
